@@ -19,6 +19,8 @@ import themes from '../themes'
 import config from '../config'
 import PlayerToolbar from './PlayerToolbar'
 import { sendNotification, baseUrl } from '../utils'
+import { resolution } from '../audioplayer/resolutionMap.js'
+import { useTheme } from '@material-ui/core/styles'
 import { keyMap } from '../hotkeys'
 
 const useStyle = makeStyles((theme) => ({
@@ -66,10 +68,14 @@ const Player = () => {
   const queue = useSelector((state) => state.queue)
   const current = queue.current || {}
   const { authenticated } = useAuthState()
+  const materialTheme = useTheme()
   const showNotifications = useSelector(
     (state) => state.settings.notifications || false
   )
 
+  const breakpoint = materialTheme.breakpoints.width(
+    resolution[useSelector((state) => state.settings.resolution)]
+  )
   const visible = authenticated && queue.queue.length > 0
   const classes = useStyle({ visible })
 
@@ -295,6 +301,7 @@ const Player = () => {
         getAudioInstance={(instance) => {
           audioInstance = instance
         }}
+        mobileMediaQuery={`(max-width:${breakpoint}px)`}
       />
       <GlobalHotKeys handlers={keyHandlers} keyMap={keyMap} allowChanges />
     </>
