@@ -51,6 +51,9 @@ const useStyles = makeStyles({
   contextMenu: {
     visibility: 'hidden',
   },
+  headerCell: {
+    position: 'static',
+  },
   ratingField: {
     visibility: 'hidden',
   },
@@ -143,7 +146,7 @@ const AlbumListView = ({
     <Datagrid
       expand={<AlbumDetails />}
       rowClick={'show'}
-      classes={{ row: classes.row }}
+      classes={{ row: classes.row, headerCell: classes.headerCell }}
       {...rest}
     >
       <TextField source="name" />

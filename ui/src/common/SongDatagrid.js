@@ -35,6 +35,7 @@ const useStyles = makeStyles({
     '& th': {
       fontWeight: 'bold',
       padding: '15px',
+      position: 'static',
     },
   },
   contextMenu: {
@@ -145,7 +146,7 @@ const SongDatagridBody = ({
   )
 
   const firstTracks = useMemo(() => {
-    if (!ids) {
+    if (!ids || !data) {
       return new Set()
     }
     const set = new Set(
@@ -191,6 +192,7 @@ export const SongDatagrid = ({
   return (
     <Datagrid
       className={classes.headerStyle}
+      classes={{ headerCell: classes.headerCell }}
       {...rest}
       body={
         <SongDatagridBody
