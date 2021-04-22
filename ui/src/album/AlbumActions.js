@@ -1,21 +1,21 @@
-import React from 'react'
+import { useMediaQuery } from '@material-ui/core'
+import CloudDownloadOutlinedIcon from '@material-ui/icons/CloudDownloadOutlined'
+import ShuffleIcon from '@material-ui/icons/Shuffle'
 import PropTypes from 'prop-types'
-import { useDispatch } from 'react-redux'
+import React from 'react'
 import {
   Button,
   sanitizeListRestProps,
   TopToolbar,
   useTranslate,
 } from 'react-admin'
-import PlayArrowIcon from '@material-ui/icons/PlayArrow'
-import ShuffleIcon from '@material-ui/icons/Shuffle'
-import CloudDownloadOutlinedIcon from '@material-ui/icons/CloudDownloadOutlined'
-import { RiPlayListAddFill, RiPlayList2Fill } from 'react-icons/ri'
-import { playNext, addTracks, playTracks, shuffleTracks } from '../actions'
+import { RiPlayList2Fill, RiPlayListAddFill } from 'react-icons/ri'
+import { useDispatch } from 'react-redux'
+import { addTracks, playNext, playTracks, shuffleTracks } from '../actions'
+import { PlayButton } from '../common'
+import config from '../config'
 import subsonic from '../subsonic'
 import { formatBytes } from '../utils'
-import { useMediaQuery } from '@material-ui/core'
-import config from '../config'
 
 const AlbumActions = ({
   className,
@@ -30,8 +30,8 @@ const AlbumActions = ({
   const isDesktop = useMediaQuery((theme) => theme.breakpoints.up('md'))
 
   const handlePlay = React.useCallback(() => {
-    dispatch(playTracks(data, ids))
-  }, [dispatch, data, ids])
+    dispatch(playTracks(data, ids, undefined, record.id))
+  }, [dispatch, data, ids, record.id])
 
   const handlePlayNext = React.useCallback(() => {
     dispatch(playNext(data, ids))
@@ -42,8 +42,8 @@ const AlbumActions = ({
   }, [dispatch, data, ids])
 
   const handleShuffle = React.useCallback(() => {
-    dispatch(shuffleTracks(data, ids))
-  }, [dispatch, data, ids])
+    dispatch(shuffleTracks(data, ids, record.id))
+  }, [dispatch, data, ids, record.id])
 
   const handleDownload = React.useCallback(() => {
     subsonic.download(record.id)
@@ -51,12 +51,7 @@ const AlbumActions = ({
 
   return (
     <TopToolbar className={className} {...sanitizeListRestProps(rest)}>
-      <Button
-        onClick={handlePlay}
-        label={translate('resources.album.actions.playAll')}
-      >
-        <PlayArrowIcon />
-      </Button>
+      <PlayButton record={record} buttonType="button" handlePlay={handlePlay} />
       <Button
         onClick={handleShuffle}
         label={translate('resources.album.actions.shuffle')}

@@ -1,26 +1,26 @@
+import { useMediaQuery } from '@material-ui/core'
+import CloudDownloadOutlinedIcon from '@material-ui/icons/CloudDownloadOutlined'
+import QueueMusicIcon from '@material-ui/icons/QueueMusic'
+import ShuffleIcon from '@material-ui/icons/Shuffle'
+import PropTypes from 'prop-types'
 import React from 'react'
-import { useDispatch } from 'react-redux'
 import {
   Button,
   sanitizeListRestProps,
   TopToolbar,
-  useTranslate,
   useDataProvider,
   useNotify,
+  useTranslate,
 } from 'react-admin'
-import PlayArrowIcon from '@material-ui/icons/PlayArrow'
-import ShuffleIcon from '@material-ui/icons/Shuffle'
-import CloudDownloadOutlinedIcon from '@material-ui/icons/CloudDownloadOutlined'
-import { RiPlayListAddFill, RiPlayList2Fill } from 'react-icons/ri'
-import QueueMusicIcon from '@material-ui/icons/QueueMusic'
-import { httpClient } from '../dataProvider'
-import { playNext, addTracks, playTracks, shuffleTracks } from '../actions'
-import { M3U_MIME_TYPE, REST_URL } from '../consts'
-import subsonic from '../subsonic'
-import PropTypes from 'prop-types'
-import { formatBytes } from '../utils'
-import { useMediaQuery } from '@material-ui/core'
+import { RiPlayList2Fill, RiPlayListAddFill } from 'react-icons/ri'
+import { useDispatch } from 'react-redux'
+import { addTracks, playNext, playTracks, shuffleTracks } from '../actions'
+import { PlayButton } from '../common'
 import config from '../config'
+import { M3U_MIME_TYPE, REST_URL } from '../consts'
+import { httpClient } from '../dataProvider'
+import subsonic from '../subsonic'
+import { formatBytes } from '../utils'
 
 const PlaylistActions = ({ className, ids, data, record, ...rest }) => {
   const dispatch = useDispatch()
@@ -32,7 +32,7 @@ const PlaylistActions = ({ className, ids, data, record, ...rest }) => {
   const getAllSongsAndDispatch = React.useCallback(
     (action) => {
       if (ids.length === record.songCount) {
-        return dispatch(action(data, ids))
+        return dispatch(action(data, ids, undefined, record.id))
       }
 
       dataProvider
@@ -46,7 +46,7 @@ const PlaylistActions = ({ className, ids, data, record, ...rest }) => {
             (acc, curr) => ({ ...acc, [curr.id]: curr }),
             {}
           )
-          dispatch(action(data))
+          dispatch(action(data, undefined, undefined, record.id))
         })
         .catch(() => {
           notify('ra.page.error', 'warning')
@@ -94,12 +94,7 @@ const PlaylistActions = ({ className, ids, data, record, ...rest }) => {
 
   return (
     <TopToolbar className={className} {...sanitizeListRestProps(rest)}>
-      <Button
-        onClick={handlePlay}
-        label={translate('resources.album.actions.playAll')}
-      >
-        <PlayArrowIcon />
-      </Button>
+      <PlayButton record={record} buttonType="button" handlePlay={handlePlay} />
       <Button
         onClick={handleShuffle}
         label={translate('resources.album.actions.shuffle')}

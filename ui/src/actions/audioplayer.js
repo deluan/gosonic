@@ -5,6 +5,7 @@ export const PLAYER_SYNC_QUEUE = 'PLAYER_SYNC_QUEUE'
 export const PLAYER_CLEAR_QUEUE = 'PLAYER_CLEAR_QUEUE'
 export const PLAYER_SCROBBLE = 'PLAYER_SCROBBLE'
 export const PLAYER_PLAY_TRACKS = 'PLAYER_PLAY_TRACKS'
+export const PLAYER_PAUSE_TRACKS = 'PLAYER_PAUSE_TRACKS'
 export const PLAYER_CURRENT = 'PLAYER_CURRENT'
 export const PLAYER_SET_VOLUME = 'PLAYER_SET_VOLUME'
 
@@ -49,7 +50,7 @@ export const shuffle = (data) => {
   return shuffled
 }
 
-export const shuffleTracks = (data, ids) => {
+export const shuffleTracks = (data, ids, id, albumOrPlaylistId = null) => {
   const songs = filterSongs(data, ids)
   const shuffled = shuffle(songs)
   const firstId = Object.keys(shuffled)[0]
@@ -57,15 +58,23 @@ export const shuffleTracks = (data, ids) => {
     type: PLAYER_PLAY_TRACKS,
     id: firstId,
     data: shuffled,
+    albumOrPlaylistId: id ? id : albumOrPlaylistId ? albumOrPlaylistId : '',
   }
 }
 
-export const playTracks = (data, ids, selectedId) => {
+export const playTracks = (data, ids, selectedId, id) => {
   const songs = filterSongs(data, ids)
   return {
     type: PLAYER_PLAY_TRACKS,
     id: selectedId || Object.keys(songs)[0],
     data: songs,
+    albumOrPlaylistId: id,
+  }
+}
+
+export const pauseTracks = () => {
+  return {
+    type: PLAYER_PAUSE_TRACKS,
   }
 }
 

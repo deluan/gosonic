@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import ReactGA from 'react-ga'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
@@ -19,12 +19,15 @@ import {
   currentPlaying,
   setVolume,
   clearQueue,
+  recentReset,
+  resetPlayer,
 } from '../actions'
 import config from '../config'
 import PlayerToolbar from './PlayerToolbar'
 import { sendNotification } from '../utils'
 import { keyMap } from '../hotkeys'
 import useCurrentTheme from '../themes/useCurrentTheme'
+import { get } from 'lodash'
 import { QualityInfo } from '../common/QualityInfo'
 
 const useStyle = makeStyles(
@@ -94,6 +97,18 @@ const Player = () => {
   const showNotifications = useSelector(
     (state) => state.settings.notifications || false
   )
+  const action = useSelector((state) => get(state, 'queue.action', ''))
+
+  useEffect(() => {
+    switch (action) {
+      case 'pause':
+        audioInstance.pause()
+        dispatch(resetPlayer())
+        break
+      default:
+        console.log()
+    }
+  }, [action, dispatch])
 
   const visible = authenticated && queue.queue.length > 0
   const classes = useStyle({ visible })
@@ -295,6 +310,7 @@ const Player = () => {
   const onBeforeDestroy = useCallback(() => {
     return new Promise((resolve, reject) => {
       dispatch(clearQueue())
+      dispatch(recentReset())
       reject()
     })
   }, [dispatch])

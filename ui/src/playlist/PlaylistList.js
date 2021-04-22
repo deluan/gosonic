@@ -55,25 +55,29 @@ const TogglePublicInput = ({ permissions, resource, record = {}, source }) => {
   )
 }
 
-const PlaylistList = ({ permissions, ...props }) => (
-  <List {...props} exporter={false} filters={<PlaylistFilter />}>
-    <Datagrid rowClick="show" isRowSelectable={(r) => isWritable(r && r.owner)}>
-      <TextField source="name" />
-      <TextField source="owner" />
-      <NumberField source="songCount" />
-      <DurationField source="duration" />
-      <DateField source="updatedAt" sortByOrder={'DESC'} />
-      <TogglePublicInput
-        source="public"
-        permissions={permissions}
-        sortByOrder={'DESC'}
-      />
-      <Writable>
-        <EditButton />
-      </Writable>
-      />
-    </Datagrid>
-  </List>
-)
+const PlaylistList = ({ permissions, ...props }) => {
+  return (
+    <List {...props} exporter={false} filters={<PlaylistFilter />}>
+      <Datagrid
+        rowClick="show"
+        isRowSelectable={(r) => isWritable(r && r.owner)}
+      >
+        <TextField source="name" />
+        <TextField source="owner" />
+        <NumberField source="songCount" />
+        <DurationField source="duration" />
+        <DateField source="updatedAt" sortByOrder={'DESC'} />
+        <TogglePublicInput
+          source="public"
+          permissions={permissions}
+          sortByOrder={'DESC'}
+        />
+        <Writable>
+          <EditButton />
+        </Writable>
+      </Datagrid>
+    </List>
+  )
+}
 
 export default PlaylistList

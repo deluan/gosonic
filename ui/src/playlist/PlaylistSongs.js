@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import {
   BulkActionsToolbar,
   ListToolbar,
@@ -24,7 +24,7 @@ import {
 } from '../common'
 import { AddToPlaylistDialog } from '../dialogs'
 import { AlbumLinkField } from '../song/AlbumLinkField'
-import { playTracks } from '../actions'
+import { playTracks, recentPlaylist } from '../actions'
 import PlaylistSongBulkActions from './PlaylistSongBulkActions'
 import { QualityInfo } from '../common/QualityInfo'
 
@@ -90,6 +90,10 @@ const PlaylistSongs = ({ playlistId, readOnly, actions, ...props }) => {
   const notify = useNotify()
   const version = useVersion()
 
+  useEffect(() => {
+    dispatch(recentPlaylist(playlistId))
+  }, [dispatch, playlistId])
+
   const onAddToPlaylist = useCallback(
     (pls) => {
       if (pls.id === playlistId) {
@@ -154,7 +158,7 @@ const PlaylistSongs = ({ playlistId, readOnly, actions, ...props }) => {
           >
             <SongDatagrid
               expand={!isXsmall && <SongDetails />}
-              rowClick={(id) => dispatch(playTracks(data, ids, id))}
+              rowClick={(id) => dispatch(playTracks(data, ids, id, playlistId))}
               {...listContext}
               hasBulkActions={true}
               contextAlwaysVisible={!isDesktop}
