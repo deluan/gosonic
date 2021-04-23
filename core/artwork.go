@@ -10,14 +10,16 @@ import (
 	"image/jpeg"
 	_ "image/png"
 	"io"
+	"io/fs"
 	"io/ioutil"
-	"os"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/dhowden/tag"
 	"github.com/disintegration/imaging"
+	_ "golang.org/x/image/webp"
+
 	"github.com/navidrome/navidrome/conf"
 	"github.com/navidrome/navidrome/consts"
 	"github.com/navidrome/navidrome/log"
@@ -25,7 +27,6 @@ import (
 	"github.com/navidrome/navidrome/resources"
 	"github.com/navidrome/navidrome/utils"
 	"github.com/navidrome/navidrome/utils/cache"
-	_ "golang.org/x/image/webp"
 )
 
 type Artwork interface {
@@ -34,12 +35,13 @@ type Artwork interface {
 
 type ArtworkCache cache.FileCache
 
-func NewArtwork(ds model.DataStore, cache ArtworkCache) Artwork {
-	return &artwork{ds: ds, cache: cache}
+func NewArtwork(ds model.DataStore, fsys fs.FS, cache ArtworkCache) Artwork {
+	return &artwork{ds: ds, fsys: fsys, cache: cache}
 }
 
 type artwork struct {
 	ds    model.DataStore
+	fsys  fs.FS
 	cache cache.FileCache
 }
 
@@ -62,7 +64,7 @@ func (a *artwork) Get(ctx context.Context, id string, size int) (io.ReadCloser, 
 	}
 
 	if !conf.Server.DevFastAccessCoverArt {
-		if stat, err := os.Stat(path); err == nil {
+		if stat, err := fs.Stat(a.fsys, path); err == nil {
 			lastUpdate = stat.ModTime()
 		}
 	}
@@ -138,9 +140,9 @@ func (a *artwork) getArtwork(ctx context.Context, id string, path string, size i
 	if size == 0 {
 		// If requested original size, just read from the file
 		if utils.IsAudioFile(path) {
-			reader, err = readFromTag(path)
+			reader, err = readFromTag(a.fsys, path)
 		} else {
-			reader, err = readFromFile(path)
+			reader, err = readFromFile(a.fsys, path)
 		}
 	} else {
 		// If requested a resized image, get the original (possibly from cache) and resize it
@@ -176,14 +178,19 @@ func resizeImage(reader io.Reader, size int) (io.ReadCloser, error) {
 	return ioutil.NopCloser(buf), err
 }
 
-func readFromTag(path string) (io.ReadCloser, error) {
-	f, err := os.Open(path)
+func readFromTag(fsys fs.FS, path string) (io.ReadCloser, error) {
+	f, err := fsys.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
 
-	m, err := tag.ReadFrom(f)
+	rsc, ok := f.(io.ReadSeeker)
+	if !ok {
+		return nil, fmt.Errorf("file interface does not implement io.ReadSeeker")
+	}
+
+	m, err := tag.ReadFrom(rsc)
 	if err != nil {
 		return nil, err
 	}
@@ -195,8 +202,8 @@ func readFromTag(path string) (io.ReadCloser, error) {
 	return ioutil.NopCloser(bytes.NewReader(picture.Data)), nil
 }
 
-func readFromFile(path string) (io.ReadCloser, error) {
-	return os.Open(path)
+func readFromFile(fsys fs.FS, path string) (io.ReadCloser, error) {
+	return fsys.Open(path)
 }
 
 var (

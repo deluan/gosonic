@@ -3,7 +3,7 @@ package persistence
 import (
 	"context"
 	"fmt"
-	"os"
+	"io/fs"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -13,6 +13,7 @@ import (
 	. "github.com/Masterminds/squirrel"
 	"github.com/astaxie/beego/orm"
 	"github.com/deluan/rest"
+
 	"github.com/navidrome/navidrome/conf"
 	"github.com/navidrome/navidrome/consts"
 	"github.com/navidrome/navidrome/log"
@@ -23,11 +24,13 @@ import (
 type albumRepository struct {
 	sqlRepository
 	sqlRestful
+	fsys fs.FS
 }
 
-func NewAlbumRepository(ctx context.Context, o orm.Ormer) model.AlbumRepository {
+func NewAlbumRepository(ctx context.Context, fsys fs.FS, o orm.Ormer) model.AlbumRepository {
 	r := &albumRepository{}
 	r.ctx = ctx
+	r.fsys = fsys
 	r.ormer = o
 	r.tableName = "album"
 	r.sortMappings = map[string]string{
@@ -210,7 +213,7 @@ func (r *albumRepository) refresh(ids ...string) error {
 		}
 
 		if !hasCoverArt || !strings.HasPrefix(conf.Server.CoverArtPriority, "embedded") {
-			if path := getCoverFromPath(al.Path, al.CoverArtPath); path != "" {
+			if path, err := getCoverFromPath(r.fsys, al.Path, al.CoverArtPath); err != nil && path != "" {
 				al.CoverArtId = "al-" + al.ID
 				al.CoverArtPath = path
 			}
@@ -291,36 +294,30 @@ func getMinYear(years string) int {
 // available choices, or an error occurs, an empty string is returned. If HasEmbeddedCover is true,
 // and 'embedded' is matched among eligible choices, GetCoverFromPath will return early with an
 // empty path.
-func getCoverFromPath(mediaPath string, embeddedPath string) string {
-	n, err := os.Open(filepath.Dir(mediaPath))
+func getCoverFromPath(fsys fs.FS, mediaPath string, embeddedPath string) (string, error) {
+	entries, err := fs.ReadDir(fsys, filepath.Dir(mediaPath))
 	if err != nil {
-		return ""
-	}
-
-	defer n.Close()
-	names, err := n.Readdirnames(-1)
-	if err != nil {
-		return ""
+		return "", err
 	}
 
 	for _, p := range strings.Split(conf.Server.CoverArtPriority, ",") {
 		pat := strings.ToLower(strings.TrimSpace(p))
 		if pat == "embedded" {
 			if embeddedPath != "" {
-				return ""
+				return "", nil
 			}
 			continue
 		}
 
-		for _, name := range names {
-			match, _ := filepath.Match(pat, strings.ToLower(name))
-			if match && utils.IsImageFile(name) {
-				return filepath.Join(filepath.Dir(mediaPath), name)
+		for _, entry := range entries {
+			match, _ := filepath.Match(pat, strings.ToLower(entry.Name()))
+			if match && utils.IsImageFile(entry.Name()) {
+				return filepath.Join(filepath.Dir(mediaPath), entry.Name()), nil
 			}
 		}
 	}
 
-	return ""
+	return "", nil
 }
 
 func (r *albumRepository) purgeEmpty() error {
