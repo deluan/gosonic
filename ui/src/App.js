@@ -23,6 +23,7 @@ import {
   albumViewReducer,
   activityReducer,
   settingsReducer,
+  visualizerReducer,
 } from './reducers'
 import createAdminStore from './store/createAdminStore'
 import { i18nProvider } from './i18n'
@@ -30,6 +31,7 @@ import config from './config'
 import { setDispatch, startEventStream } from './eventStream'
 import { HotKeys } from 'react-hotkeys'
 import { keyMap } from './hotkeys'
+import { Visualizer } from './milkdropvisualizer'
 
 const history = createHashHistory()
 
@@ -54,6 +56,7 @@ const App = () => (
         addToPlaylistDialog: addToPlaylistDialogReducer,
         activity: activityReducer,
         settings: settingsReducer,
+        visualizer: visualizerReducer,
       },
     })}
   >
@@ -114,6 +117,7 @@ const Admin = (props) => {
         <Resource name="keepalive" />,
 
         <Player />,
+        <Visualizer />,
       ]}
     </RAAdmin>
   )
