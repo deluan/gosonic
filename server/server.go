@@ -62,6 +62,7 @@ func (s *Server) initRoutes() {
 	r.Use(middleware.Heartbeat("/ping"))
 	r.Use(injectLogger)
 	r.Use(requestLogger)
+	r.Use(randomSeedMiddleware)
 	r.Use(robotsTXT(ui.Assets()))
 	r.Use(authHeaderMapper)
 	r.Use(jwtVerifier)
