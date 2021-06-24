@@ -82,6 +82,16 @@ const useStyles = makeStyles(
     pointerCursor: {
       cursor: 'pointer',
     },
+    detailDivider: {
+      [theme.breakpoints.down('xs')]: {
+        display: 'none',
+      },
+    },
+    albumDetailDivider: {
+      [theme.breakpoints.down('xs')]: {
+        display: 'block',
+      },
+    },
     recordName: {},
     recordArtist: {},
     recordMeta: {},
@@ -195,8 +205,10 @@ const AlbumDetails = ({ record }) => {
               {translate('resources.song.name', {
                 smart_count: record.songCount,
               })}
-              {' · '} <DurationField record={record} source={'duration'} />{' '}
               {' · '}
+              <DurationField record={record} source={'duration'} />{' '}
+              <span className={classes.detailDivider}> · </span>
+              <span className={classes.albumDetailDivider}></span>
               <SizeField record={record} source="size" />
             </Typography>
             {config.enableStarRating && (
