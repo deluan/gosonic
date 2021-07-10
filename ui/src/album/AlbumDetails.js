@@ -22,6 +22,7 @@ import {
   RatingField,
 } from '../common'
 import config from '../config'
+import {Link} from 'react-admin'
 
 const useStyles = makeStyles(
   (theme) => ({
@@ -105,7 +106,8 @@ const AlbumComment = ({ record }) => {
     ))
   }, [lines, record.id])
 
-  const handleExpandClick = useCallback(() => {
+  
+    const handleExpandClick = useCallback(() => {
     setExpanded(!expanded)
   }, [expanded, setExpanded])
 
@@ -125,6 +127,25 @@ const AlbumComment = ({ record }) => {
     </Collapse>
   )
 }
+
+
+const CommentLink = ({record}) => {
+    const urlRegx = /(https?:\/\/)?[\w\-~]+(\.[\w\-~]+)+(\/[\w\-~@:%]*)*(#[\w\-]*)?(\?[^\s]*)?/gi
+    const result =record.comment.match(urlRegx)
+    const handleOpenLink= () =>{
+    window.open(result[0], '_blank');
+    }
+    
+      return (
+      <Link 
+      onClick={handleOpenLink}
+      >
+      {record.comment}
+      </Link>
+
+  )
+}
+
 
 const AlbumDetails = ({ record }) => {
   const isDesktop = useMediaQuery((theme) => theme.breakpoints.up('lg'))
@@ -208,11 +229,11 @@ const AlbumDetails = ({ record }) => {
                 />
               </div>
             )}
-            {isDesktop && record['comment'] && <AlbumComment record={record} />}
+            {isDesktop && record['comment'] && <CommentLink record={record}/>}
           </CardContent>
         </div>
       </div>
-      {!isDesktop && record['comment'] && <AlbumComment record={record} />}
+      {!isDesktop && record['comment'] && <CommentLink record={record}/> }
       {isLightboxOpen && (
         <Lightbox
           imagePadding={50}
